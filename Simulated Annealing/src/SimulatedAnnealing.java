@@ -1,29 +1,40 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SimulatedAnnealing {
 
 	int temperaturaInicial = 10000;
 	double temperaturaFinal = 0.00001;
 	double tasaEnfriamiento = 0.9999;
-	int numCiudades = 4;
+	static int numCiudades;
 	
 	Swap swap = new Swap();
-	Costo costo = new Costo();
+	
 	
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		int ciudades = Integer.parseInt( args[0] );
+		String archivo = args[1];
+		String salida = args[2];
+		numCiudades = ciudades;
 		SimulatedAnnealing simulated = new SimulatedAnnealing();
 		for(int i = 0; i < 30; i++){
 			System.out.println("Experiment " + (i + 1));
-			simulated.Simulated();
-			System.out.println();
+			System.gc();
+			simulated.Simulated(ciudades, archivo, salida);
 		}
 		
 	}
 
-	public void Simulated(){
+	public void Simulated(int ciudades, String archivo, String salida){
 		
+		Costo costo = new Costo(archivo, ciudades);
 		int[]solucionActual = new int[numCiudades];
 		solucionActual = generarSolucion(solucionActual);
 		int distanciaActual = costo.calcularCosto(solucionActual);
@@ -47,10 +58,44 @@ public class SimulatedAnnealing {
 			temperaturaInicial *= tasaEnfriamiento;
 		}
 		
-		String solucion = mostrarsolucion(solucionActual);
-		System.out.println("Mejor Solución: " + solucion);
-		System.out.println("Distancia de la solución: " + distanciaActual + "\nTemperatura Actual: " + temperaturaInicial);
+		String solucionAct = mostrarsolucion(solucionActual);
 		
+		//File output creation
+    	File o = new File(salida);
+    	
+    	//Create output file
+    	FileWriter fw;
+        if (!o.exists()) 
+        {
+            try 
+            {
+                o.createNewFile();
+            } 
+            catch (IOException ex) 
+            {
+                Logger.getLogger(SimulatedAnnealing.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("\n\nFile " + o);
+                System.exit(0);
+            }
+        }
+        BufferedWriter bw = null;
+        
+        try 
+    	{
+    		fw = new FileWriter(o.getAbsoluteFile(), true);
+    		bw = new BufferedWriter(fw);
+    		
+    		bw.write( "\n\nMejor Solución: \t" + solucionAct );
+    		bw.write( "\nCosto de la Solución: \t" + distanciaActual );
+        	
+    		
+			bw.flush();
+		} 
+    	catch (IOException e) 
+    	{
+			e.printStackTrace();
+		}
+        
 	}
 	
 	public int [] generarSolucion(int [] solucion){
